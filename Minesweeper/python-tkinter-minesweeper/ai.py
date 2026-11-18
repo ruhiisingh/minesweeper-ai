@@ -19,12 +19,13 @@ def main():
         board = reader.readBoard(game)
 
         # Currently using as a debug, remove once using solver.py
+        # Output is terminal junk later
         print(board)
 
         # Pass the board later to solver.py
         window.after(1000, inspect_board)
 
-
+    # every second inspect the board.
     window.after(1000, inspect_board)
     window.mainloop()
 
