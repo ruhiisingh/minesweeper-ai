@@ -2,12 +2,13 @@ import tkinter as tk
 import minesweeper as ms
 
 """
-Game state is already being stored in game being ran in minesweeper.py
+file used to for staging various components together
+better for later abstraction and more higher-level visualization
 """
 
 def main():
 
-    # Starts the game, by running the game
+    # Starts the game, by running minesweeper.py
     window = tk.Tk()
     game = ms.Minesweeper(window)
     window.mainloop()
