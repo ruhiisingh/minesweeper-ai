@@ -1,19 +1,22 @@
-Python Tkinter Minesweeper
-===========================
+# Structuring
+ai.py
+  ├── owns the game and coordinates each turn
+  ├── reader.py → returns only player(agent)-visible board information
+  └── solver.py → finds moves using deterministic rules/patterns
+  
 
-Minesweeper game written in Python using Tkinter GUI library.
+# How to run
+Ensuring python is installed in your system and present in your PATH, running `python ai.py` while located in `/Minesweeper/python-tkinter-minesweeper` should start an floating game instance.
 
-<img src="https://i.imgur.com/8JwCyAQ.png" alt="Screenshot on OSX" height="350"/>
-
-Contents:
-----------
-
-- */minesweeper.py* - The actual python program
-- */images/* - GIF Images ready for usage with Tkinter
-- */images/original* - Original PNG images made with GraphicsGale
-
-To Do:
-----------
-- Have specific number of mines, rather than random
-- Highscore table
-- Adjustable grid and mine count via UI
+# Python virtual Environment
+Run these commands (While located in `/Minesweeper/python-tkinter-minesweeper`):
+- `python -m venv .venv`
+- Activate your virtual environment
+    - Mac/Unix/Linux based users (depends on terminal shell):
+        - `source /.venv/bin/activate`
+        - `source /.venv/bin/activate.csh`
+        - `source /.venv/bin/activate.fish`
+    - Windows:
+        - Run this while in powershell `/.venv/Scripts/activate`
+- Install required packages (while using the venv)
+    - `pip install -r requirements.txt`
