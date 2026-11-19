@@ -1,5 +1,5 @@
 # Structuring
-ai.py
+ai.py  
   ├── owns the game and coordinates each turn  
   ├── reader.py → returns only player(agent)-visible board information  
   └── solver.py → finds moves using deterministic rules/patterns  
