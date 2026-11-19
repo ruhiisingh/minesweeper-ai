@@ -1,8 +1,8 @@
 # Structuring
 ai.py
-  ├── owns the game and coordinates each turn \n
-  ├── reader.py → returns only player(agent)-visible board information \n
-  └── solver.py → finds moves using deterministic rules/patterns
+  ├── owns the game and coordinates each turn  
+  ├── reader.py → returns only player(agent)-visible board information  
+  └── solver.py → finds moves using deterministic rules/patterns  
   
 
 # How to run
