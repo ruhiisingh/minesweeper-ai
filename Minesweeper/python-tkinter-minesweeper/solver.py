@@ -34,3 +34,53 @@ def get_neighbors(board, row, col):
             neighbors.append((neighbor_row, neighbor_col))
 
     return neighbors
+
+
+def find_mines(board):
+    """Return coordinates to flag, assuming existing flags are correct."""
+    rows, columns = board.shape
+    tiles_to_flag = set()
+
+    for row in range(rows):
+        for col in range(columns):
+            number = board[row, col]
+
+            # Only revealed numbers provide a mine count for this rule.
+            if not 1 <= number <= 8:
+                continue
+
+            flagged_count = 0
+            unknown_neighbors = []
+
+            for neighbor_row, neighbor_col in get_neighbors(board, row, col):
+                neighbor = board[neighbor_row, neighbor_col]
+
+                if neighbor == reader.FLAG:
+                    flagged_count += 1
+                elif neighbor == reader.UNKNOWN:
+                    unknown_neighbors.append((neighbor_row, neighbor_col))
+
+            remaining_mines = number - flagged_count
+
+            if unknown_neighbors and remaining_mines == len(unknown_neighbors):
+                tiles_to_flag.update(unknown_neighbors)
+
+    return tiles_to_flag
+
+
+def find_safe_tiles(board):
+    """Return coordinates safe to reveal beside revealed empty tiles."""
+    rows, columns = board.shape
+    safe_tiles = set()
+
+    for row in range(rows):
+        for col in range(columns):
+            # EMPTY is a revealed zero; UNKNOWN (0) is still covered.
+            if board[row, col] != reader.EMPTY:
+                continue
+
+            for neighbor_row, neighbor_col in get_neighbors(board, row, col):
+                if board[neighbor_row, neighbor_col] == reader.UNKNOWN:
+                    safe_tiles.add((neighbor_row, neighbor_col))
+
+    return safe_tiles
