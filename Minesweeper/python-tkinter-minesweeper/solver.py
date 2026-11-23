@@ -1,4 +1,6 @@
 import reader
+import interact
+
 '''
 Scaffolding for solver AI later.
 Holds functions that will be used for patterns
