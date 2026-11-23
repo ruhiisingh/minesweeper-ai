@@ -84,3 +84,5 @@ def find_safe_tiles(board):
                     safe_tiles.add((neighbor_row, neighbor_col))
 
     return safe_tiles
+
+# Testing github push
