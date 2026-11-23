@@ -10,8 +10,8 @@ import time
 from datetime import time, date, datetime
 
 #How big do we want the board to be x by y size
-SIZE_X = 10
-SIZE_Y = 10
+SIZE_X = 30
+SIZE_Y = 30
 
 STATE_DEFAULT = 0
 STATE_CLICKED = 1
@@ -102,7 +102,7 @@ class Minesweeper:
                 self.tiles[x][y] = tile
 
         # loop again to find nearby mines and display number on tile
-        #Set the number each tile should be 
+        # Set the number each tile should be
         for x in range(0, SIZE_X):
             for y in range(0, SIZE_Y):
                 mc = 0

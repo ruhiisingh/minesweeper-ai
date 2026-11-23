@@ -45,11 +45,11 @@ def main():
                 print("NO other safe move")
                 return
 
-        window.after(1000, turn)
+        window.after(10, turn)
 
     # every second inspect the board.
     # Remove later, or instead probably figure out a stack method that calls patterns, or just make the ai do stuff
-    window.after(1000, turn)
+    window.after(10, turn)
     window.mainloop()
 
 
