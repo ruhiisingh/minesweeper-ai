@@ -41,6 +41,10 @@ def main():
                 row, column = min(safe_tiles)
                 interact.reveal(game, row, column)
 
+            else:
+                print("NO other safe move")
+                return
+
         window.after(1000, turn)
 
     # every second inspect the board.

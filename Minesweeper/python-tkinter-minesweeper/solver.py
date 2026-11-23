@@ -1,5 +1,4 @@
 import reader
-import interact
 
 '''
 Scaffolding for solver AI later.
@@ -77,13 +76,34 @@ def find_safe_tiles(board):
 
     for row in range(rows):
         for col in range(columns):
+            num = board[row, col]
+
             # EMPTY is a revealed zero; UNKNOWN (0) is still covered.
-            if board[row, col] != reader.EMPTY:
+            if board[row, col] == reader.EMPTY:
+                num = 0
+            elif not 1 <= num <= 8:
                 continue
 
+            # Initialization, to get tiles revealed
+            flagged_neighbors = 0
+            unknown_neighbors = []
+
+            """
+            For a target tile, retrieve all neighbors
+            define how many neighboring tiles are flagged.
+            Check if num of flagged tiles matches target,
+            if so update & in main function reveal neighbors
+            deemed safe.
+            """
             for neighbor_row, neighbor_col in get_neighbors(board, row, col):
-                if board[neighbor_row, neighbor_col] == reader.UNKNOWN:
-                    safe_tiles.add((neighbor_row, neighbor_col))
+                neighbor = board[neighbor_row, neighbor_col]
+
+                if neighbor == reader.FLAG:
+                    flagged_neighbors += 1
+                elif neighbor == reader.UNKNOWN:
+                    unknown_neighbors.append((neighbor_row, neighbor_col))
+            if flagged_neighbors == num:
+                safe_tiles.update(unknown_neighbors)
 
     return safe_tiles
 
