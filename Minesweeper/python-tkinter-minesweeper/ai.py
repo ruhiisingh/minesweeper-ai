@@ -29,6 +29,7 @@ def main():
         else:
             tiles_to_flag = solver.find_mines(board)
             safe_tiles = solver.find_safe_tiles(board)
+            safe_tiles.update(solver.find_safe_tiles_from_total(board, game.mines))
 
             """Flags work, but current issue seems to be lack of info
             from the elif statement below to reveal tiles deemed safe"""
