@@ -5,12 +5,6 @@ Scaffolding for solver AI later.
 Holds functions that will be used for patterns
 '''
 
-"""
-Function at this moment should fail
-the paramter 'board' needs to be from an return from ai.py
-minesweeper.py has a similar function called getNeighbors
-however that requires object 'self' from the minesweeper class
-"""
 def get_neighbors(board, row, col):
     rows, columns = board.shape
 
