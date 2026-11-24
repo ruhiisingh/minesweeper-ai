@@ -129,3 +129,28 @@ def find_safe_tiles_from_total(board, total_mines):
         safe_tiles.update(unknown_tiles)
 
     return safe_tiles
+
+def find_mines_from_total(board, total_mines):
+    """Flags remaining tiles if the number of mines left is the number of unflagged covered tiles"""
+    rows, columns = board.shape
+    unknown_tiles = []
+    total_flagged = 0
+    mine_tiles = set()
+
+    for row in range(rows):
+        for col in range(columns):
+            # if the tile is covered and has not been flagged yet
+            if board[row, col] == reader.UNKNOWN:
+                unknown_tiles.append((row, col))
+            # if the tile has been flagged
+            elif board[row, col] == reader.FLAG:
+                total_flagged += 1
+
+    # calculates the number of mines to locate
+    mines_remaining = total_mines - total_flagged
+
+    # if the number of mines left to find is the same as the number of covered tiles, every covered tile should be a mine
+    if mines_remaining == len(unknown_tiles):
+        mine_tiles.update(unknown_tiles)
+
+    return mine_tiles
