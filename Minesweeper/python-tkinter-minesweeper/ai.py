@@ -3,13 +3,61 @@ import minesweeper as ms
 import reader
 import interact
 import solver
+from pathlib import Path
+import numpy as np
+
 
 """
 file used to for staging various components together
 better for later abstraction and more higher-level visualization
 """
+def training(game, board):
+    features = []
+    outcomes = []
+
+    rows, cols = board.shape
+
+    for row in range(rows):
+        for col in range(cols):
+            #training on covered tiles
+            if board[row, col] != reader.UNKNOWN:
+                continue
+            attributes = solver.get_tree_attributes(board, row, col)
+
+            #Skip tiles with no info  
+            if all(value == reader.UNKNOWN or value == solver.EDGE for value in attributes):
+                continue
+
+            features.append(attributes)
+
+            #Train only on hidden tiles 
+            if game.tiles[row][col]["isMine"]:
+                outcomes.append(1) #Mine
+            else:
+                outcomes.append(0) #Not Mine
+
+    return features, outcomes
+
+              
+
+
+
+
 
 def main():
+    #Create file to store training data
+    INFO_PATH = Path(__file__).resolve().parent / "training_data.npz"
+    
+    #Load old data if there is any
+    if INFO_PATH.exists():
+        with np.load(str(INFO_PATH)) as old_data:
+                train_X = old_data["X"].tolist()
+                train_Y = old_data["Y"].tolist()
+                print("Load old data", len(train_X))
+    else:
+        train_X = []
+        train_Y = []
+
     # Starts the game, by running minesweeper.py
     window = tk.Tk()
     window.title("Minesweeper")
@@ -18,6 +66,14 @@ def main():
 
     def turn():
         board = reader.readBoard(game)
+
+        new_X, new_Y = training(game, board)
+
+        train_X.extend(new_X)
+        train_Y.extend(new_Y)
+
+        if train_X:
+            np.savez(str(INFO_PATH), X = np.array(train_X, dtype = np.int8), Y = np.array(train_Y, dtype = np.int8))
 
         # Checks if the board has been untouched
         # If so, then do an opening move
