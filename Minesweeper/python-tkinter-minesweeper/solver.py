@@ -123,25 +123,161 @@ def find_safe_tiles_from_total(board, total_mines):
             # if the tile has been flagged
             elif board[row, col] == reader.FLAG:
                 total_flagged += 1
-    
+
     # if the number of flagged tiles is equal to number of mines, then there are no more mines
     if total_flagged == total_mines:
         safe_tiles.update(unknown_tiles)
 
     return safe_tiles
 
+"""
+Pairwise based method of solving the board, which calculates a partial frontier state.
+It'll be more of the statistical/arithmetic method, where there is a forced move which might
+help progress fowards, but when there is no defined move from this check. Along with the earlier checks
+in ai.py, means we have to rely on decision trees from here, or find some other method of progression.
+"""
+def find_pattern_moves(board):
+    """
+    Return (safe_tiles, tiles_to_flag) using pairwise clue constraints.
+
+    Existing flags are assumed to be correct.
+    Preliminary pretty much half asses attempt for CSP related solving.
+    More of an pattern checker than anything.
+    """
+    rows, columns = board.shape
+    constraints = {}
+
+    for row in range(rows):
+        # Vist each tile
+        for col in range(columns):
+            number = board[row, col]
+
+            if number == reader.EMPTY:
+                number = 0
+            elif not 1 <= number <= 8:
+                continue
+
+            unknown = set()
+            flagged = 0
+            # Check target/clue tile's neighbors
+            # Count flagged versus unknown tiles in neighbors
+            for neighbor_row, neighbor_col in get_neighbors(board, row, col):
+                value = board[neighbor_row, neighbor_col]
+
+                if value == reader.FLAG:
+                    flagged += 1
+                elif value == reader.UNKNOWN:
+                    unknown.add((neighbor_row, neighbor_col))
+            """
+            Remaning produces the constraint, e.g. tile reveals clue 3.
+            With a adjacent flag the constraint A + B + C = 2 is made.
+            """
+            remaining = int(number) - flagged
+
+            if not 0 <= remaining <= len(unknown):
+                raise ValueError(
+                    f"Clue at {(row, col)} conflicts with neighboring flags."
+                )
+
+            if not unknown:
+                continue
+
+            cells = frozenset(unknown)
+
+            if cells in constraints and constraints[cells] != remaining:
+                raise ValueError("The same cells have conflicting mine counts.")
+            # Stores the relationship, basically keeps all the mine-count equations
+            # Across many different simulations
+            constraints[cells] = remaining
+
+    safe_tiles = set()
+    tiles_to_flag = set()
+
+    # Checks the constraints independently, where 0 is equivalent to no mines remaining
+    # 1 is where each cell must contain a mine
+    for cells, remaining in constraints.items():
+        if remaining == 0:
+            safe_tiles.update(cells)
+        elif remaining == len(cells):
+            tiles_to_flag.update(cells)
+
+    # Loops through comparisons of constraints, no-double counting
+    # e.g. Constaint 1 vs Constraint 0
+    # Then Constraint 0 vs Constraint 1 is ignored later
+    items = list(constraints.items())
+    # enumerate(items) is the position + constraint
+    for index, (left, left_count) in enumerate(items):
+        # items[index + 1] is the following constraint
+        for right, right_count in items[index + 1:]:
+            shared = left & right
+
+            if not shared:
+                continue
+
+            left_only = left - right
+            right_only = right - left
+
+            # Both clues constrain how many mines can occupy their overlap.
+            # E.g. in the 1 2 1 pattern, if theres a mine in the center
+            # where 2 is located, it satisfies both clue 1, but clue 2 is not satisfied
+            # so there is no shared mines between clue's 1.
+            shared_min = max(
+                0,
+                left_count - len(left_only),
+                right_count - len(right_only),
+            )
+            shared_max = min(
+                len(shared),
+                left_count,
+                right_count,
+            )
+
+            if shared_min > shared_max:
+                raise ValueError("Overlapping clues have conflicting counts.")
+
+            groups = (
+                (shared, shared_min, shared_max),
+                (
+                    left_only,
+                    left_count - shared_max,
+                    left_count - shared_min,
+                ),
+                (
+                    right_only,
+                    right_count - shared_max,
+                    right_count - shared_min,
+                ),
+            )
+
+            # Finds forced moves in the groups defined above
+            # Exlcusive & shared groups are tested here
+            for cells, minimum, maximum in groups:
+                if not cells:
+                    continue
+
+                if maximum == 0: # group must not have a mine
+                    safe_tiles.update(cells)
+                elif minimum == len(cells): # all cells must contain a mine
+                    tiles_to_flag.update(cells)
+
+    if safe_tiles & tiles_to_flag:
+        raise ValueError("Conflicting deductions: a tile is both safe and mined.")
+
+    return safe_tiles, tiles_to_flag
+
+
 def get_tree_attributes(board, row, col):
     rows, columns = board.shape
-    
+
     # Formatted to make it easier for later stuff
     offsets = [
             (-1, -1), (-1, 0), (-1, 1),
             ( 0, -1),          ( 0, 1),
             ( 1, -1), ( 1, 0), ( 1, 1),
         ]
-    
+
     attributes = []
-    
+
     for row_offset, col_offset in offsets:
         neighbor_row = row + row_offset
         neighbor_col = col + col_offset
@@ -155,6 +291,4 @@ def get_tree_attributes(board, row, col):
         #Makes any edge read in -1
         else:
             attributes.append(EDGE)
-
-    
     return attributes

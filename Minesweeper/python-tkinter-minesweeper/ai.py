@@ -86,14 +86,20 @@ def main():
         else:
             tiles_to_flag = solver.find_mines(board)
             safe_tiles = solver.find_safe_tiles(board)
+            safe_tiles.update(
+                solver.find_safe_tiles_from_total(board, game.mines)
+            )
 
-            """Flags work, but current issue seems to be lack of info
-            from the elif statement below to reveal tiles deemed safe"""
+            # Try more expensive comparisons only when the simple rules find nothing.
+            if not tiles_to_flag and not safe_tiles:
+                pattern_safe, pattern_mines = solver.find_pattern_moves(board)
+                safe_tiles.update(pattern_safe)
+                tiles_to_flag.update(pattern_mines)
+
             if tiles_to_flag:
                 row, column = min(tiles_to_flag)
                 interact.flag(game, row, column)
 
-            # Not sure why this isn't defining safe tiles just yet
             elif safe_tiles:
                 row, column = min(safe_tiles)
                 interact.reveal(game, row, column)
