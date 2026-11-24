@@ -3,6 +3,7 @@ import minesweeper as ms
 import reader
 import interact
 import solver
+import snapshot
 from pathlib import Path
 import numpy as np
 
@@ -24,13 +25,13 @@ def training(game, board):
                 continue
             attributes = solver.get_tree_attributes(board, row, col)
 
-            #Skip tiles with no info  
+            #Skip tiles with no info
             if all(value == reader.UNKNOWN or value == solver.EDGE for value in attributes):
                 continue
 
             features.append(attributes)
 
-            #Train only on hidden tiles 
+            #Train only on hidden tiles
             if game.tiles[row][col]["isMine"]:
                 outcomes.append(1) #Mine
             else:
@@ -38,7 +39,7 @@ def training(game, board):
 
     return features, outcomes
 
-              
+
 
 
 
@@ -47,7 +48,7 @@ def training(game, board):
 def main():
     #Create file to store training data
     INFO_PATH = Path(__file__).resolve().parent / "training_data.npz"
-    
+
     #Load old data if there is any
     if INFO_PATH.exists():
         with np.load(str(INFO_PATH)) as old_data:
@@ -98,14 +99,15 @@ def main():
                 interact.reveal(game, row, column)
 
             else:
-                print("NO other safe move")
+                path = snapshot.save_snapshot(board, game.tiles)
+                print(f"NO other safe move. Snapshot saved to: {path}")
                 return
 
-        window.after(10, turn)
+        window.after(1, turn)
 
     # every second inspect the board.
     # Remove later, or instead probably figure out a stack method that calls patterns, or just make the ai do stuff
-    window.after(10, turn)
+    window.after(1, turn)
     window.mainloop()
 
 
