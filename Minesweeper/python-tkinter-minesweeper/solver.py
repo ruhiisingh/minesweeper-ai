@@ -154,3 +154,59 @@ def find_mines_from_total(board, total_mines):
         mine_tiles.update(unknown_tiles)
 
     return mine_tiles
+
+
+def find_subset_moves(board):
+    """Return (safe_tiles, mine_tiles) by comparing overlapping clue groups.
+
+    Existing flags are assumed correct. The input board is left unchanged.
+    """
+    rows, columns = board.shape
+    constraints = []
+
+    # Each clue gives an unknown-neighbor group and its remaining mine count.
+    for row in range(rows):
+        for col in range(columns):
+            number = board[row, col]
+
+            if number == reader.EMPTY:
+                number = 0
+            elif not 1 <= number <= 8:
+                continue
+
+            flagged_count = 0
+            unknown_neighbors = set()
+
+            for neighbor_row, neighbor_col in get_neighbors(board, row, col):
+                neighbor = board[neighbor_row, neighbor_col]
+
+                if neighbor == reader.FLAG:
+                    flagged_count += 1
+                elif neighbor == reader.UNKNOWN:
+                    unknown_neighbors.add((neighbor_row, neighbor_col))
+
+            remaining_mines = int(number) - flagged_count
+
+            if unknown_neighbors and 0 <= remaining_mines <= len(unknown_neighbors):
+                constraints.append((unknown_neighbors, remaining_mines))
+
+    safe_tiles = set()
+    mine_tiles = set()
+
+    for smaller_neighbors, smaller_mines in constraints:
+        for larger_neighbors, larger_mines in constraints:
+            # Every tile in the smaller group must also be in the larger group.
+            if not smaller_neighbors < larger_neighbors:
+                continue
+
+            extra_neighbors = larger_neighbors - smaller_neighbors
+            extra_mines = larger_mines - smaller_mines
+
+            # The smaller group already accounts for all the larger group's mines.
+            if extra_mines == 0:
+                safe_tiles.update(extra_neighbors)
+            # Every extra tile must hold a mine to satisfy the larger clue.
+            elif extra_mines == len(extra_neighbors):
+                mine_tiles.update(extra_neighbors)
+
+    return safe_tiles, mine_tiles
