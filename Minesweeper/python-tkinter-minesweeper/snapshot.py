@@ -2,9 +2,18 @@ from pathlib import Path
 from uuid import uuid4
 
 import numpy as np
+import reader
 
 
 def save_snapshot(visible_board, tiles):
+    """Save boards with at least two revealed tiles, or return None."""
+    revealed = (
+        ((visible_board >= 1) & (visible_board <= 8))
+        | (visible_board == reader.EMPTY)
+    )
+    if np.count_nonzero(revealed) <= 1:
+        return None
+
     rows, columns = visible_board.shape
 
     # Ground truth for training labels, separate from the visible board.

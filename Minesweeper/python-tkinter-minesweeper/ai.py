@@ -107,7 +107,13 @@ def main():
 
             else:
                 path = snapshot.save_snapshot(board, game.tiles)
-                print(f"NO other safe move. Snapshot saved to: {path}")
+                if path is None:
+                    print(
+                        "NO other safe move. Snapshot skipped: "
+                        "fewer than two revealed tiles."
+                    )
+                else:
+                    print(f"NO other safe move. Snapshot saved to: {path}")
                 return
 
         window.after(1, turn)
