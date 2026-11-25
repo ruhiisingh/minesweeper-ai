@@ -85,6 +85,7 @@ def main():
         # Reads all flags & places them if unsafe
         else:
             tiles_to_flag = solver.find_mines(board)
+            tiles_to_flag.update(solver.find_mines_from_total(board, game.mines))
             safe_tiles = solver.find_safe_tiles(board)
             safe_tiles.update(
                 solver.find_safe_tiles_from_total(board, game.mines)
@@ -92,9 +93,9 @@ def main():
 
             # Try more expensive comparisons only when the simple rules find nothing.
             if not tiles_to_flag and not safe_tiles:
-                pattern_safe, pattern_mines = solver.find_pattern_moves(board)
-                safe_tiles.update(pattern_safe)
-                tiles_to_flag.update(pattern_mines)
+                advanced_safe, advanced_mines = solver.find_advanced_moves(board)
+                safe_tiles.update(advanced_safe)
+                tiles_to_flag.update(advanced_mines)
 
             if tiles_to_flag:
                 row, column = min(tiles_to_flag)
