@@ -116,11 +116,11 @@ def main():
                     print(f"NO other safe move. Snapshot saved to: {path}")
                 return
 
-        window.after(1, turn)
+        window.after(50, turn)
 
     # every second inspect the board.
     # Remove later, or instead probably figure out a stack method that calls patterns, or just make the ai do stuff
-    window.after(1, turn)
+    window.after(50, turn)
     window.mainloop()
 
 

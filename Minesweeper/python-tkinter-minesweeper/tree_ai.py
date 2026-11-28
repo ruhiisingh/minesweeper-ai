@@ -3,7 +3,29 @@ import minesweeper as ms
 import reader 
 import interact
 import tree_solver
-import solver
+import snapshot
+
+
+def save_failure_snapshot(game, board, reason):
+    try:
+        path = snapshot.save_snapshot(board, game.tiles)
+    except OSError as error:
+        print(f"{reason}. Snapshot failed: {error}")
+        return
+
+    if path is None:
+        print(f"{reason}. Snapshot skipped: fewer than two revealed tiles.")
+    else:
+        print(f"{reason}. Snapshot saved to: {path}")
+
+
+class TreeMinesweeper(ms.Minesweeper):
+    def gameOver(self, won):
+        if not won:
+            # Capture the board before the parent can show a dialog and restart.
+            save_failure_snapshot(self, reader.readBoard(self), "Game lost")
+        super().gameOver(won)
+
 
 def main():
 
@@ -11,7 +33,7 @@ def main():
     window = tk.Tk()
     window.title("Minesweeper Tree")
 
-    game = ms.Minesweeper(window)
+    game = TreeMinesweeper(window)
 
     #Load model
     model = tree_solver.load_model()
@@ -19,43 +41,21 @@ def main():
     def turn():
         board = reader.readBoard(game)
 
-        #First move
-        if (board == reader.UNKNOWN).all():
-            interact.reveal(game, row = 0, column = 0)
+        move = tree_solver.choose_move(board, model, game.mines)
+        if move is None:
+            save_failure_snapshot(game, board, "No Move")
+            return
 
+        source, row, column = move
+        if source == "flag":
+            move_count["Solver_flags"] += 1
+            interact.flag(game, row, column)
         else:
-
-            solver_mines = solver.find_mines(board)
-
-            solver_safe_tiles = solver.find_safe_tiles(board)
-
-            '''
-            tiles_to_flag = tree_solver.find_mines(board, model, threshold = 0.99)
-
-            safe_tiles = tree_solver.find_safe_tiles(board, model)
-            '''
-
-            if(solver_mines):
-                row, column = min(solver_mines)
-                move_count["Solver_flags"] += 1
-                interact.flag(game, row, column)
-            
-
-            elif solver_safe_tiles:
-                row, column = min(solver_safe_tiles)
+            if source == "safe":
                 move_count["Solver_safest_moves"] += 1
-                interact.reveal(game, row, column)
-
-            else:
-                safes_tile = tree_solver.find_safest_tile(board, model)
-
-                if safes_tile is None:
-                    print("No Move")
-                    return
-                
+            elif source == "tree":
                 move_count["tree_moves"] += 1
-                row, column = safes_tile
-                interact.reveal(game, row, column)
+            interact.reveal(game, row, column)
         
         window.after(100, turn)
 
